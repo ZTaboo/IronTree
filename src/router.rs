@@ -1,7 +1,9 @@
 use axum::Router;
 use axum::routing::get;
-use crate::controller;
+use crate::controller::api;
 
-pub async fn router(app: Router) -> Router {
-    app.route("/", get(controller::api::hello))
+pub fn router() -> Router {
+    Router::new()
+        .route("/", get(api::hello))
+        .route("/captcha", get(api::captcha))
 }

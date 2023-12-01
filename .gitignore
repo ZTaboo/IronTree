@@ -1,2 +1,11 @@
 /target
 .idea
+log.log
+iron-tree-frontend/.idea
+iron-tree-frontend/node_modules
+iron-tree-frontend/npm-debug.log*
+iron-tree-frontend/yarn-debug.log*
+iron-tree-frontend/yarn-error.log*
+iron-tree-frontend/pnpm-debug.log*
+iron-tree-frontend/lerna-debug.log*
+iron-tree-frontend/dist
