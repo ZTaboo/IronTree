@@ -7,11 +7,12 @@ use tracing::log::{Level, log};
 use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt};
 
 use iron_tree::{client, middleware};
+use iron_tree::db::init::init_mongo;
 use iron_tree::router::guest::guest;
 
 #[tokio::main]
 async fn main() {
-    init();
+    init().await;
     // 开启日志,日志写入文件
     let file = File::create("log.log").expect("create log error");
     let file_layer = fmt::layer().with_writer(file);
@@ -32,8 +33,11 @@ async fn main() {
     axum::serve(listener, app).await.unwrap();
 }
 
-fn init() {
+async fn init() {
     // 缓存实例初始化
     let cache = Cache::new(10000);
     client::CACHE.set(cache).expect("初始化缓存失败");
+    // 数据库实例
+    let mongo_client = init_mongo().await.expect("链接数据库失败");
+    client::MONGO.set(mongo_client).expect("数据库全部变量设置失败")
 }

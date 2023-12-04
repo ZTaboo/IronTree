@@ -9,7 +9,7 @@ export default {
         extend: {},
     },
     corePlugins: {
-        // preflight: false    // 关闭样式覆盖
+        preflight: false    // 关闭样式覆盖
     },
     plugins: [],
 }
