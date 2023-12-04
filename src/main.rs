@@ -22,7 +22,8 @@ async fn main() {
         .init();
     let api = guest();
     let app = Router::new()
-        .merge(api)        .layer(CompressionLayer::new()) // 压缩数据;未指定压缩算法，默认自动选择
+        .merge(api)
+        .layer(CompressionLayer::new()) // 压缩数据;未指定压缩算法，默认自动选择
         .layer(RequestBodyLimitLayer::new(4096))    // 请求数据长度限制
         .layer(middleware::cors())
         .layer(middleware::logger());
