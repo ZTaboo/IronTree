@@ -1,4 +1,5 @@
-use crate::utils::crypt::{enc_password, ver_password};
+#[allow(unused_imports)]
+use super::crypt::{enc_password, ver_password};
 
 // 生成密码与校验密码
 #[test]

@@ -1,7 +1,10 @@
 use std::fs::File;
+use std::time::Duration;
 
 use axum::Router;
+use axum::error_handling::HandleErrorLayer;
 use moka::sync::Cache;
+use tower::ServiceBuilder;
 use tower_http::{compression::CompressionLayer, limit::RequestBodyLimitLayer};
 use tracing::log::{Level, log};
 use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt};
@@ -27,17 +30,27 @@ async fn main() {
         .layer(CompressionLayer::new()) // 压缩数据;未指定压缩算法，默认自动选择
         .layer(RequestBodyLimitLayer::new(4096))    // 请求数据长度限制
         .layer(middleware::cors())
-        .layer(middleware::logger());
+        .layer(middleware::logger())
+        .layer( // 超时中间件
+                ServiceBuilder::new()
+                    .layer(HandleErrorLayer::new(middleware::handle_timeout_error))
+                    .timeout(Duration::from_secs(30)),
+        );
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8080").await.unwrap();
     log!(Level::Info,"http://localhost:8080");
     axum::serve(listener, app).await.unwrap();
 }
 
+
 async fn init() {
-    // 缓存实例初始化
-    let cache = Cache::new(10000);
+    // 缓存实例初始化;超时30秒验证码失效
+    let cache = Cache::builder()
+        .max_capacity(1000)
+        .time_to_live(Duration::from_secs(30))
+        .build();
     client::CACHE.set(cache).expect("初始化缓存失败");
     // 数据库实例
     let mongo_client = init_mongo().await.expect("链接数据库失败");
     client::MONGO.set(mongo_client).expect("数据库全部变量设置失败")
 }
+

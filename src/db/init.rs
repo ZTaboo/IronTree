@@ -1,6 +1,7 @@
 use mongodb::{Client, Database, error};
 use tracing::log::{Level, log};
-use crate::db::{db_model, coll};
+
+use crate::db::{coll, db_model};
 use crate::utils::crypt::enc_password;
 
 pub async fn init_mongo() -> error::Result<Database> {
@@ -13,6 +14,12 @@ pub async fn init_mongo() -> error::Result<Database> {
 
 // 初始化超级管理员用户
 async fn init_admin(database: &Database) -> error::Result<()> {
+    // 查询是否有数据
+    let res = database.collection::<db_model::user::User>(coll::USER).count_documents(None, None).await?;
+    if res > 0 {
+        return Ok(());
+    }
+    // 创建管理用户
     let pass = match enc_password("admin".as_bytes()) {
         Ok(res) => res,
         Err(e) => {
@@ -24,6 +31,7 @@ async fn init_admin(database: &Database) -> error::Result<()> {
         username: "admin".into(),
         password: pass,
         role: "超级管理员".into(),
+        ..db_model::user::User::default()
     };
     database.collection(coll::USER).insert_one(new_data, None).await?;
     Ok(())
