@@ -1,7 +1,15 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
-#[derive(Serialize,Default)]
+#[derive(Serialize, Default)]
 pub struct CaptchaModel {
     pub id: String,
     pub base64: String,
+}
+
+// 登陆成功返回值
+#[derive(Serialize, Deserialize, Default)]
+pub struct LoginModel {
+    pub username: String,
+    pub role: String,
+    pub token: String,
 }

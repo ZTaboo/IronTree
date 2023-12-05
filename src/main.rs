@@ -1,15 +1,15 @@
 use std::fs::File;
 use std::time::Duration;
 
-use axum::Router;
 use axum::error_handling::HandleErrorLayer;
+use axum::Router;
 use moka::sync::Cache;
 use tower::ServiceBuilder;
 use tower_http::{compression::CompressionLayer, limit::RequestBodyLimitLayer};
 use tracing::log::{Level, log};
 use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt};
 
-use iron_tree::{client, middleware};
+use iron_tree::{client, middleware, router};
 use iron_tree::db::init::init_mongo;
 use iron_tree::router::guest::guest;
 
@@ -24,9 +24,11 @@ async fn main() {
         .with(file_layer)
         .with(fmt::layer())
         .init();
-    let api = guest();
+    let guest_api = guest();
+    let api = router::api::api();
     let app = Router::new()
-        .merge(api)
+        .merge(guest_api)
+        .nest("/api", api)
         .layer(CompressionLayer::new()) // 压缩数据;未指定压缩算法，默认自动选择
         .layer(RequestBodyLimitLayer::new(4096))    // 请求数据长度限制
         .layer(middleware::cors())

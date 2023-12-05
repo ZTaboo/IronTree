@@ -1,5 +1,9 @@
 use axum::{BoxError, Json};
-use axum::http::{Method, StatusCode, Uri};
+use axum::extract::Request;
+use axum::http::{HeaderMap, Method, StatusCode, Uri};
+use axum::middleware::Next;
+use axum::response::Response;
+use mongodb::bson::doc;
 use tower_http::classify::{ServerErrorsAsFailures, SharedClassifier};
 use tower_http::cors::{Any, CorsLayer};
 use tower_http::LatencyUnit;
@@ -7,7 +11,44 @@ use tower_http::trace::{DefaultMakeSpan, DefaultOnRequest, DefaultOnResponse, Tr
 use tracing::{Level, log};
 use tracing::log::log;
 
+use crate::client;
+use crate::db::{coll, db_model};
 use crate::model::global::ResData;
+use crate::utils::custom::IJson;
+
+// 鉴权中间件
+pub async fn auth(header: HeaderMap, req: Request, next: Next) -> Result<Response, (StatusCode, IJson<ResData<serde_json::Value>>)> {
+    let res = next.run(req).await;
+
+    // 获取token
+    let auth_str = match header.get("authorization") {
+        None => return Err((StatusCode::UNAUTHORIZED, IJson(ResData { code: 401, msg: "请登录".into(), ..ResData::default() }))),
+        Some(value) => value.to_str().map_err(|_| (StatusCode::UNAUTHORIZED, IJson(ResData { code: 401, msg: "请求数据错误".into(), ..ResData::default() })))?,
+    };
+
+    // 获取用户名
+    let username_str = match header.get("username") {
+        None => return Err((StatusCode::UNAUTHORIZED, IJson(ResData { code: 401, msg: "请登录".into(), ..ResData::default() }))),
+        Some(value) => value.to_str().map_err(|_| (StatusCode::UNAUTHORIZED, IJson(ResData { code: 401, msg: "请求数据错误".into(), ..ResData::default() })))?,
+    };
+
+    // 数据库查询
+    let mongo = match client::MONGO.get() {
+        None => return Err((StatusCode::INTERNAL_SERVER_ERROR, IJson(ResData { code: 500, msg: "数据库错误".into(), ..ResData::default() }))),
+        Some(client) => client,
+    };
+    let count = mongo.collection::<db_model::user::User>(coll::USER).count_documents(doc! {"username":username_str,"token":auth_str}, None).await;
+    return match count {
+        Ok(value) => {
+            if value > 0 {
+                Ok(res)
+            } else {
+                Err((StatusCode::UNAUTHORIZED, IJson(ResData { code: 401, msg: "授权失效".into(), ..ResData::default() })))
+            }
+        }
+        Err(_) => Err((StatusCode::UNAUTHORIZED, IJson(ResData { code: 401, msg: "授权失效".into(), ..ResData::default() }))),
+    };
+}
 
 //  超时中间件
 pub async fn handle_timeout_error(
