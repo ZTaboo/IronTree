@@ -3,7 +3,7 @@ use mongodb::bson::doc;
 use nanoid::nanoid;
 use tracing::log::{Level, log};
 
-use crate::client;
+use crate::{client, utils};
 use crate::db::coll;
 use crate::db::db_model::user;
 use crate::model::request_model::user::LoginModel;
@@ -45,6 +45,9 @@ pub async fn login(req_data: LoginModel) -> Result<(user::User, String), &'stati
     if res != req_data.captcha {
         log!(Level::Error,"验证码错误");
         return Err("验证码错误");
+    } else {
+        // 验证码正确则删除验证码
+        cache.invalidate(req_data.captcha_id.as_str());
     }
     // 查询用户是否存在
     let mongo = match client::MONGO.get() {
@@ -52,7 +55,17 @@ pub async fn login(req_data: LoginModel) -> Result<(user::User, String), &'stati
         Some(client) => client,
     };
 
-    println!("username:{}", req_data.username);
+    // 查询用户并验证密码
+    let user = match mongo.collection::<user::User>(coll::USER)
+        .find_one(doc! {"username":req_data.username.clone()}, None).await {
+        Ok(value) => value.ok_or("用户或密码错误")?,
+        Err(_) => return Err("用户或密码错误"),
+    };
+
+    if !utils::crypt::ver_password(req_data.password.as_bytes(), user.password.as_str()) {
+        return Err("用户或密码错误");
+    }
+
     // 生成id
     let session = nanoid!(25);
     let result = match mongo.collection::<user::User>(coll::USER)

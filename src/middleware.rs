@@ -74,6 +74,7 @@ pub fn cors() -> CorsLayer {
     CorsLayer::new()
         .allow_methods(Any)
         .allow_origin(Any)
+        .allow_headers(Any)
 }
 
 //  日志输出格式处理

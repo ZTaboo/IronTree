@@ -4,14 +4,18 @@ import {Button, Form, Input, message} from "antd";
 import {Avatar, Fingerprint, Key} from "@icon-park/react";
 import LeftBg from '@/assets/images/login-left.svg'
 import {useEffect, useState} from "react";
-import {get} from "@/utils/http.js";
+import {get, post} from "@/utils/http.js";
+import localforage from "localforage";
 
 const Login = () => {
     const navigate = useNavigate()
+    const [messageApi, contextHolder] = message.useMessage()
     const [captcha, setCaptcha] = useState({
         id: '',
         base64: ''
     })
+    // 表单信息
+    const [form] = Form.useForm()
     const getCaptcha = () => {
         get('/captcha').then(r => {
             if (r.code !== 200) {
@@ -23,12 +27,34 @@ const Login = () => {
         })
     }
 
+    const loginBtn = () => {
+        post('/login', {...form.getFieldsValue(), captchaId: captcha.id}).then(r => {
+            getCaptcha()
+            if (r.code !== 200) {
+                messageApi.error(`登录失败:${r.msg}`)
+            } else {
+                message.success('登录成功')
+                localforage.setItem('token', r.data.token).catch(e => {
+                    messageApi.error(`登录失败:${e}`)
+                })
+                localforage.setItem('username', r.data.username).catch(e => {
+                    messageApi.error(`登录失败:${e}`)
+                })
+                localforage.setItem('role', r.data.role).catch(e => {
+                    messageApi.error(`登录失败:${e}`)
+                })
+                navigate('/admin')
+            }
+        })
+    }
+
     useEffect(() => {
         getCaptcha()
     }, [])
     return (
         <div
             className={'h-[100vh] bg-[#D5E1F2] w-full dark:bg-[#141414] dark:text-white flex justify-center items-center shadow-xl'}>
+            {contextHolder}
             <div className={'w-[900px] bg-white rounded-xl h-[550px] dark:bg-[#222631]'}>
                 <div>
                     <div className={'flex items-center justify-center pt-5 pb-5 pl-3 pr-3 sm:justify-start'}>
@@ -41,20 +67,22 @@ const Login = () => {
                         </div>
                         <div>
                             <span
-                                className={'hidden sm:text-2xl sm:block sm:pb-10 font-bold text-blue-500 sm:text-center'}>WELCOME CLOUD</span>
-                            <Form className={'max-w-[600px]'} labelAlign={'right'} labelCol={{span: 4}}>
-                                <Form.Item label={'用户名'}>
+                                className={'hidden sm:text-2xl sm:block sm:pb-10 font-bold text-blue-500 sm:text-center'}>WELCOME IRON</span>
+                            <Form className={'max-w-[600px]'} labelAlign={'right'} labelCol={{span: 4}} form={form}
+                                  onFinish={loginBtn}
+                            >
+                                <Form.Item label={'用户名'} name={"username"} rules={[{required: true}]}>
                                     <Input
                                         prefix={<Avatar theme="outline" size="16" fill="#CEDFEF" strokeLinecap="butt"/>}
                                         placeholder={'请输入用户名'}
                                     ></Input>
                                 </Form.Item>
-                                <Form.Item label={'密码'}>
+                                <Form.Item label={'密码'} rules={[{required: true}]} name={"password"}>
                                     <Input.Password
                                         prefix={<Key theme="outline" size="16" fill="#CEDFEF" strokeLinecap="butt"/>}
                                         placeholder={'请输入密码'}></Input.Password>
                                 </Form.Item>
-                                <Form.Item label={'验证码'}>
+                                <Form.Item label={'验证码'} name={'captcha'} rules={[{required: true}]}>
                                     <div className={'flex'}>
                                         <Input
                                             prefix={<Fingerprint theme="outline" size="16" fill="#CEDFEF"
@@ -70,7 +98,8 @@ const Login = () => {
                                     <a className={'text-blue-600 float-right'}>忘记密码</a>
                                 </Form.Item>
                                 <Form.Item className={'sm:mt-8'}>
-                                    <Button className={'w-full bg-blue-600'} color={'blue'}
+                                    <Button className={'w-full bg-blue-600'} htmlType={'submit'}
+                                            color={'blue'}
                                             type={"primary"}>登录</Button>
                                 </Form.Item>
                             </Form>
