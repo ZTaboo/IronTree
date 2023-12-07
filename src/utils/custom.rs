@@ -2,11 +2,29 @@ use axum::extract::FromRequest;
 use axum::extract::rejection::JsonRejection;
 use axum::http::StatusCode;
 use axum::response::IntoResponse;
-use serde::Serialize;
+use bson::oid::ObjectId;
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use serde_json::json;
 
+// 自定义objectId序列化方法
+pub fn serialize_id<S>(id: &String, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+{
+    let oid = ObjectId::parse_str(id).map_err(serde::ser::Error::custom)?;
+    oid.serialize(serializer)
+}
+
+// 自定义objectId反序列化方法
+pub fn deserialize_id<'de, D>(deserializer: D) -> Result<String, D::Error>
+    where
+        D: Deserializer<'de>,
+{
+    let oid = ObjectId::deserialize(deserializer)?;
+    Ok(oid.to_hex())
+}
+
 // 定义自己的Json extract
-// create an extractor that internally uses `axum::Json` but has a custom rejection
 #[derive(FromRequest)]
 #[from_request(via(axum::Json), rejection(ApiError))]
 pub struct IJson<T>(pub T);

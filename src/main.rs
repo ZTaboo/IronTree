@@ -27,9 +27,9 @@ async fn main() {
         .with(file_layer)
         .with(fmt::layer())
         .init();
-    let state = Arc::new(AppState { version: "v0.0.1".to_string(), mon_db:Some(mongodb), cache: Some(cache) });
+    let state = Arc::new(AppState { version: "v0.0.1".to_string(), mon_db: Some(mongodb), cache: Some(cache) });
     let guest_api = guest();
-    let api = router::api::api();
+    let api = router::api::api(state.clone());
     let app = Router::new()
         .merge(guest_api)
         .nest("/api", api)

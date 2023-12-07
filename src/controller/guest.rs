@@ -1,5 +1,7 @@
 use std::sync::Arc;
+
 use axum::extract::State;
+
 use crate::model::global::{AppState, ResData};
 use crate::model::request_model::user::LoginModel;
 use crate::model::response_model;
@@ -27,10 +29,12 @@ pub async fn captcha(State(state): State<Arc<AppState>>) -> IJson<ResData<respon
     IJson(ResData { code: 200, data: res_data, ..ResData::default() })
 }
 
-pub async fn login(State(state): State<Arc<AppState>>,IJson(req_data): IJson<LoginModel>) -> IJson<ResData<response_model::guest::LoginModel>> {
-    let (user, token) = match services::guest::login(state,req_data.clone()).await {
+pub async fn login(State(state): State<Arc<AppState>>, IJson(req_data): IJson<LoginModel>) -> IJson<ResData<response_model::guest::LoginModel>> {
+    let (user, token) = match services::guest::login(state, req_data.clone()).await {
         Ok(value) => value,
         Err(e) => return IJson(ResData { code: 500, msg: e.to_string(), ..ResData::default() }),
     };
+    let id = user.clone();
+    println!("User:{id:?}");
     IJson(ResData { code: 200, data: response_model::guest::LoginModel { username: user.username, role: user.role, token: token.clone() }, ..ResData::default() })
 }
