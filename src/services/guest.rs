@@ -1,14 +1,17 @@
+use std::sync::Arc;
+
 use captcha_rs::CaptchaBuilder;
 use mongodb::bson::doc;
 use nanoid::nanoid;
 use tracing::log::{Level, log};
 
-use crate::{client, utils};
+use crate::utils;
 use crate::db::coll;
 use crate::db::db_model::user;
+use crate::model::global::AppState;
 use crate::model::request_model::user::LoginModel;
 
-pub fn get_captcha() -> Result<(String, String), &'static str> {
+pub fn get_captcha(state: Arc<AppState>) -> Result<(String, String), &'static str> {
     let capt = CaptchaBuilder::new()
         .length(5)
         .width(130)
@@ -18,21 +21,23 @@ pub fn get_captcha() -> Result<(String, String), &'static str> {
         .compression(40)
         .build();
     let id = nanoid!(20);
-    if let Some(cache) = client::CACHE.get() {
-        cache.insert(id.clone(), capt.text.clone());
-        let res = cache.get(&id);
-        println!("{res:?}");
-    } else {
-        log!(Level::Error,"获取缓存实例失败");
-        Err("获取缓存实例失败")?
-    }
+    let cache = match state.cache.clone() {
+        None => {
+            log!(Level::Error,"获取缓存实例失败");
+            return Err("缓存未初始化");
+        }
+        Some(cache) => cache,
+    };
+    cache.insert(id.clone(), capt.text.clone());
+    let res = cache.get(&id);
+    println!("{res:?}");
     Ok((id.into(), capt.to_base64()))
 }
 
 
-pub async fn login(req_data: LoginModel) -> Result<(user::User, String), &'static str> {
+pub async fn login(state: Arc<AppState>, req_data: LoginModel) -> Result<(user::User, String), &'static str> {
     // 查询验证码是否存在
-    let cache = match client::CACHE.get() {
+    let cache = match state.cache.clone() {
         Some(val) => val,
         None => return Err("获取缓存实例失败"),
     };
@@ -50,7 +55,7 @@ pub async fn login(req_data: LoginModel) -> Result<(user::User, String), &'stati
         cache.invalidate(req_data.captcha_id.as_str());
     }
     // 查询用户是否存在
-    let mongo = match client::MONGO.get() {
+    let mongo = match state.mon_db.clone() {
         None => return Err("获取数据库实例失败"),
         Some(client) => client,
     };

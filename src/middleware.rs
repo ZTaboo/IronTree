@@ -1,5 +1,6 @@
+use std::sync::Arc;
 use axum::{BoxError, Json};
-use axum::extract::Request;
+use axum::extract::{Request, State};
 use axum::http::{HeaderMap, Method, StatusCode, Uri};
 use axum::middleware::Next;
 use axum::response::Response;
@@ -13,7 +14,7 @@ use tracing::log::log;
 
 use crate::client;
 use crate::db::{coll, db_model};
-use crate::model::global::ResData;
+use crate::model::global::{AppState, ResData};
 use crate::utils::custom::IJson;
 
 // 鉴权中间件

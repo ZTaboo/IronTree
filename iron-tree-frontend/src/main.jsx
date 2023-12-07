@@ -30,6 +30,9 @@ const App = () => {
     return (
         <ConfigProvider theme={{
             components: {
+                Dropdown: {
+                    controlHeight: 27
+                },
                 Menu: {
                     darkItemBg: '#242525',
                     darkSubMenuItemBg: '#252828',

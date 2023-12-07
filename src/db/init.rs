@@ -31,6 +31,7 @@ async fn init_admin(database: &Database) -> error::Result<()> {
         username: "admin".into(),
         password: pass,
         role: "超级管理员".into(),
+        avatar: Some("avatar/default.png".into()),
         ..db_model::user::User::default()
     };
     database.collection(coll::USER).insert_one(new_data, None).await?;
