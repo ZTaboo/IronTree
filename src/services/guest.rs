@@ -28,14 +28,14 @@ pub fn get_captcha(state: Arc<AppState>) -> Result<(String, String), &'static st
         }
         Some(cache) => cache,
     };
-    cache.insert(id.clone(), capt.text.clone());
+    cache.insert(id.clone(), capt.text.to_lowercase().clone());
     let res = cache.get(&id);
     println!("{res:?}");
     Ok((id.into(), capt.to_base64()))
 }
 
 
-pub async fn login(state: Arc<AppState>, req_data: LoginModel) -> Result<(user::User, String), &'static str> {
+pub async fn login(state: Arc<AppState>, req_data: LoginModel) -> Result<(user::UserNoPass, String), &'static str> {
     // 查询验证码是否存在
     let cache = match state.cache.clone() {
         Some(val) => val,
@@ -47,13 +47,13 @@ pub async fn login(state: Arc<AppState>, req_data: LoginModel) -> Result<(user::
         None => return Err("验证码不存在"),
     };
 
-    if res != req_data.captcha {
+    if res.to_lowercase() != req_data.captcha {
         log!(Level::Error,"验证码错误");
         return Err("验证码错误");
-    } else {
-        // 验证码正确则删除验证码
-        cache.invalidate(req_data.captcha_id.as_str());
     }
+
+    // 验证码使用后则删除验证码
+    cache.invalidate(req_data.captcha_id.as_str());
     // 查询用户是否存在
     let mongo = match state.mon_db.clone() {
         None => return Err("获取数据库实例失败"),
@@ -70,13 +70,14 @@ pub async fn login(state: Arc<AppState>, req_data: LoginModel) -> Result<(user::
         }
     };
 
-    if !utils::crypt::ver_password(req_data.password.as_bytes(), user.password.as_str()) {
+
+    if !utils::crypt::ver_password(req_data.password.as_bytes(), user.password.ok_or_else(|| "密码是空的")?.as_str()) {
         return Err("用户或密码错误");
     }
 
     // 生成id
     let session = nanoid!(25);
-    let result = match mongo.collection::<user::User>(coll::USER)
+    let result = match mongo.collection::<user::UserNoPass>(coll::USER)
         .find_one_and_update(doc! {"username":req_data.username}, doc! {"$set":{"token":session.clone()}}, None)
         .await {
         Ok(value) => value,

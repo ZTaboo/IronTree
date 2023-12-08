@@ -253,7 +253,7 @@ const Admin = () => {
                 <IronTabs></IronTabs>
                 <Content
                     className={
-                        "p-[20px] dark:bg-[#1f2020] m-[15px] dark:text-[#fff] bg-white rounded-sm"
+                        "dark:bg-[#1f2020] m-[15px] dark:text-[#fff] rounded-sm"
                     }
                 >
                     <Outlet/>

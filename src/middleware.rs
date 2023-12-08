@@ -4,6 +4,7 @@ use axum::{BoxError, Json};
 use axum::extract::{Request, State};
 use axum::http::{HeaderMap, Method, StatusCode, Uri};
 use axum::middleware::Next;
+use axum::response::Response;
 use mongodb::bson::doc;
 use tower_http::classify::{ServerErrorsAsFailures, SharedClassifier};
 use tower_http::cors::{Any, CorsLayer};
@@ -17,7 +18,7 @@ use crate::model::global::{AppState, ResData};
 use crate::utils::custom::IJson;
 
 // 鉴权中间件
-pub async fn auth(State(state): State<Arc<AppState>>, header: HeaderMap, req: Request, next: Next) -> Result<(), (StatusCode, IJson<ResData<serde_json::Value>>)> {
+pub async fn auth(State(state): State<Arc<AppState>>, header: HeaderMap, req: Request, next: Next) -> Result<Response, (StatusCode, IJson<ResData<serde_json::Value>>)> {
     // 获取token
     let auth_str = match header.get("authorization") {
         None => return Err((StatusCode::UNAUTHORIZED, IJson(ResData { code: 401, msg: "请登录".into(), ..ResData::default() }))),
@@ -35,13 +36,12 @@ pub async fn auth(State(state): State<Arc<AppState>>, header: HeaderMap, req: Re
         None => return Err((StatusCode::INTERNAL_SERVER_ERROR, IJson(ResData { code: 500, msg: "数据库错误".into(), ..ResData::default() }))),
         Some(client) => client,
     };
-    println!("auth_str:{username_str},auth_str:{auth_str}");
-    let count = mongo.collection::<db_model::user::User>(coll::USER).count_documents(doc! {"username":username_str,"token":auth_str}, None).await;
+    let count = mongo.collection::<db_model::user::UserNoPass>(coll::USER).count_documents(doc! {"username":username_str,"token":auth_str}, None).await;
     return match count {
         Ok(value) => {
             if value > 0 {
-                next.run(req).await;
-                Ok(())
+                let req = next.run(req).await;
+                Ok(req)
             } else {
                 Err((StatusCode::UNAUTHORIZED, IJson(ResData { code: 401, msg: "授权失效".into(), ..ResData::default() })))
             }

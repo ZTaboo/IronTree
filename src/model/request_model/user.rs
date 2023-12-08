@@ -9,3 +9,16 @@ pub struct LoginModel {
     #[serde(alias = "captchaId")]
     pub captcha_id: String,
 }
+
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct AddUserModel {
+    #[serde(rename = "username")]
+    pub username: String,
+
+    #[serde(rename = "password")]
+    pub password: String,
+
+    #[serde(rename = "role")]
+    pub role: String,
+}

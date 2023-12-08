@@ -15,7 +15,7 @@ pub async fn init_mongo() -> error::Result<Database> {
 // 初始化超级管理员用户
 async fn init_admin(database: &Database) -> error::Result<()> {
     // 查询是否有数据
-    let res = database.collection::<db_model::user::User>(coll::USER).count_documents(None, None).await?;
+    let res = database.collection::<db_model::user::UserNoPass>(coll::USER).count_documents(None, None).await?;
     if res > 0 {
         return Ok(());
     }
@@ -27,12 +27,12 @@ async fn init_admin(database: &Database) -> error::Result<()> {
             return Ok(());
         }
     };
-    let new_data = db_model::user::User {
-        username: "admin".into(),
-        password: pass,
-        role: "超级管理员".into(),
-        avatar: Some("avatar/default.png".into()),
-        ..db_model::user::User::default()
+    let new_data = db_model::user::UserNoPass {
+        username: "admin".to_string(),
+        password: Some(pass),
+        role: "超级管理员".to_string(),
+        avatar: Some("avatar/default.png".to_string()),
+        ..db_model::user::UserNoPass::default()
     };
     database.collection(coll::USER).insert_one(new_data, None).await?;
     Ok(())

@@ -1,15 +1,21 @@
 use serde::{Deserialize, Serialize};
 
-use crate::utils::custom::{deserialize_id, serialize_id};
 
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
-pub struct User {
-    #[serde(rename = "_id", serialize_with = "serialize_id", deserialize_with = "deserialize_id")]
-    pub _id: String,
+pub struct UserNoPass {
     pub username: String,
-    pub password: String,
+    #[serde(skip_deserializing, skip_serializing_if = "Option::is_none")]
+    pub password: Option<String>,
     pub avatar: Option<String>,
     pub role: String,
     pub token: Option<String>,
 }
 
+#[derive(Serialize, Deserialize, Debug, Default, Clone)]
+pub struct User {
+    pub username: String,
+    pub password: Option<String>,
+    pub avatar: Option<String>,
+    pub role: String,
+    pub token: Option<String>,
+}

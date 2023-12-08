@@ -1,7 +1,9 @@
 const Dash = () => {
   return(
       <div>
-          this is dask
+          <div className={'h-[120px] w-full bg-white'}>
+
+          </div>
       </div>
   )
 }

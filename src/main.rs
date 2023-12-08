@@ -57,7 +57,7 @@ async fn init() -> (Cache<String, String>, Database) {
         .build();
     // client::CACHE.set(cache).expect("初始化缓存失败");
     // 数据库实例
-    let mongo_client = init_mongo().await.expect("链接数据库失败");
+    let mongo_client = init_mongo().await.expect("连接数据库失败");
     // client::MONGO.set(mongo_client).expect("数据库全部变量设置失败");
     (cache, mongo_client)
 }

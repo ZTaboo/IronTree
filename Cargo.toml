@@ -6,12 +6,11 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-anyhow = "1.0.75"
 argon2 = "0.5.2"
 axum = { version = "0.7.1", features = ["json", "macros"] }
 captcha-rs = "0.2.10"   # 验证码生成
 moka = { version = "0.12.1", features = ["sync"] }  # sync: 同步缓存
-mongodb = "2.7.1"
+mongodb = { version = "2.7.1", features = ["default"] }
 nanoid = "0.4.0"        # 类uuid更小更快的生成
 serde = { version = "1.0.193", features = ["derive"] }
 serde_json = { version = "1.0.108" }
@@ -21,4 +20,4 @@ tower-http = { version = "0.5.0", features = ["cors", "trace", "default", "timeo
 tracing = "0.1.40"
 tracing-subscriber = { version = "0.3.18", features = ["ansi"] }
 async-trait = "0.1.74"     # swagger ui
-bson = "2.7.0"
+futures = "0.3.29"
