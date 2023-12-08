@@ -148,7 +148,7 @@ const Admin = () => {
                     )}
                 </div>
                 <div className={'sm:hidden'}>
-                    <Drawer width={220} open={phoneMenu} closeIcon={false} classNames={{body: '!p-3'}} placement="left"
+                    <Drawer width={220} open={phoneMenu} closeIcon={false} classNames={{body: '!p-0'}} placement="left"
                             onClose={() => setPhoneMenu(false)}>
                         <Menu
                             theme={dark ? "dark" : "light"}
@@ -253,7 +253,7 @@ const Admin = () => {
                 <IronTabs></IronTabs>
                 <Content
                     className={
-                        "dark:bg-[#1f2020] m-[15px] dark:text-[#fff] rounded-sm"
+                        "dark:bg-[#1f2020] p-[15px] dark:text-[#fff] rounded-sm"
                     }
                 >
                     <Outlet/>

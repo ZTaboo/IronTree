@@ -10,6 +10,7 @@ pub struct CaptchaModel {
 #[derive(Serialize, Deserialize, Default)]
 pub struct LoginModel {
     pub username: String,
+    pub avatar: Option<String>,
     pub role: String,
     pub token: String,
 }

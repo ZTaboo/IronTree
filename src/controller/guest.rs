@@ -34,5 +34,14 @@ pub async fn login(State(state): State<Arc<AppState>>, IJson(req_data): IJson<Lo
         Ok(value) => value,
         Err(e) => return IJson(ResData { code: 500, msg: e.to_string(), ..ResData::default() }),
     };
-    IJson(ResData { code: 200, data: response_model::guest::LoginModel { username: user.username, role: user.role, token: token.clone() }, ..ResData::default() })
+    IJson(ResData {
+        code: 200,
+        data: response_model::guest::LoginModel {
+            username: user.username,
+            role: user.role,
+            token: token.clone(),
+            avatar: Some(user.avatar.unwrap_or("".to_string())),
+        },
+        ..ResData::default()
+    })
 }

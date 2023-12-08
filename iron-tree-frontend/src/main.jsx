@@ -4,6 +4,7 @@ import {RouterProvider} from "react-router-dom";
 import router from "@/router.jsx";
 import {ConfigProvider, theme} from "antd";
 import {happyMode, useTheme} from "@/store/store.jsx";
+import zhCN from 'antd/locale/zh_CN';
 import './index.less'
 import '@icon-park/react/styles/index.less'
 import {HappyProvider} from "@ant-design/happy-work-theme";
@@ -28,7 +29,7 @@ const App = () => {
         !dark ? setTokenTheme(lightToken) : setTokenTheme(darkToken)
     }, [dark])
     return (
-        <ConfigProvider theme={{
+        <ConfigProvider locale={zhCN} theme={{
             components: {
                 Dropdown: {
                     controlHeight: 27

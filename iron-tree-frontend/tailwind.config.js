@@ -6,7 +6,12 @@ export default {
         "./src/**/*.{js,ts,jsx,tsx}",
     ],
     theme: {
-        extend: {},
+        extend: {
+            colors: {
+                'dark': "#292A2A",
+                'sub-title': "#909399"
+            }
+        },
     },
     corePlugins: {
         preflight: false    // 关闭样式覆盖

@@ -7,7 +7,6 @@ import {useEffect, useState} from "react";
 import {get, post} from "@/utils/http.js";
 import localforage from "localforage";
 import './login.css'
-import anime from "animejs";
 
 const Login = () => {
     const navigate = useNavigate()
@@ -36,15 +35,10 @@ const Login = () => {
                 messageApi.error(`登录失败:${r.msg}`)
             } else {
                 message.success('登录成功')
-                localforage.setItem('token', r.data.token).catch(e => {
+                localforage.setItem('user', r.data).catch(e => {
                     messageApi.error(`登录失败:${e}`)
                 })
-                localforage.setItem('username', r.data.username).catch(e => {
-                    messageApi.error(`登录失败:${e}`)
-                })
-                localforage.setItem('role', r.data.role).catch(e => {
-                    messageApi.error(`登录失败:${e}`)
-                })
+                
                 navigate('/admin')
             }
         })
