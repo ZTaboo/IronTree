@@ -1,20 +1,14 @@
 import {useEffect, useState} from "react";
-import {get} from "@/utils/http.js";
-import {message, Layout, Menu, Button, theme, Breadcrumb, Tabs, Drawer} from "antd";
-import {Outlet, useLocation, useNavigate, useParams} from "react-router-dom";
-import {
-    AllApplication,
-    HomeTwo,
-    MenuFoldOne,
-    MenuUnfoldOne,
-    Workbench,
-} from "@icon-park/react";
+import {getHttp} from "@/utils/http.js";
+import {Breadcrumb, Button, Drawer, Layout, Menu, message, theme} from "antd";
+import {Outlet, useLocation, useNavigate} from "react-router-dom";
+import {HomeTwo, MenuFoldOne, MenuUnfoldOne,} from "@icon-park/react";
 import {IronTabs} from "@/components/IronTabs.jsx";
 import {HeaderRightBox} from "@/components/ToggleTheme/HeaderRightBox.jsx";
 import LogoImg from "@/assets/images/logo.png";
 import {useAutoAnimate} from "@formkit/auto-animate/react";
 import {menuList} from "@/components/MenuList.jsx";
-import {useTheme, useTabs} from "@/store/store.jsx";
+import {useTabs, useTheme} from "@/store/store.jsx";
 
 const {Header, Sider, Content} = Layout;
 const Admin = () => {
@@ -41,7 +35,8 @@ const Admin = () => {
         },
     ]);
     const [parent, enableAnimations] = useAutoAnimate({
-        duration: 200,
+        duration: 250,
+        easing: "ease-in-out",
         disrespectUserMotionPreference: true,
     });
     const {
@@ -108,7 +103,7 @@ const Admin = () => {
         }
     };
     useEffect(() => {
-        get("/api/ping").catch(() => {
+        getHttp("/api/ping").catch(() => {
             message.error("登录失效");
             setTimeout(() => {
                 navigate("/login");
@@ -173,7 +168,7 @@ const Admin = () => {
                     openKeys={selectedValue.openKeys}
                     selectedKeys={selectedValue.selectedKeys}
                     onClick={selectMenuBtn}
-                    style={{height: "calc(100vh - 48px)"}}
+                    style={{height: "calc(100vh - 48px)", overflowX: 'auto'}}
                     mode="inline"
                     defaultSelectedKeys={["1"]}
                     items={menuList}
@@ -252,8 +247,9 @@ const Admin = () => {
                 {/* 自定义tabs */}
                 <IronTabs></IronTabs>
                 <Content
+                    ref={parent}
                     className={
-                        "dark:bg-[#1f2020] p-[15px] dark:text-[#fff] rounded-sm"
+                        "dark:bg-[#1f2020] p-[15px] dark:text-[#fff] rounded-sm overflow-x-auto "
                     }
                 >
                     <Outlet/>

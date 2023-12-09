@@ -2,7 +2,8 @@ import {create} from "zustand";
 import {persist} from "zustand/middleware";
 
 export const useTheme = create(persist((set) => ({
-    dark: false, toggleTheme: () => set((state) => ({
+    dark: false,
+    toggleTheme: () => set((state) => ({
         dark: !state.dark,
     })),
 }), {
@@ -10,7 +11,8 @@ export const useTheme = create(persist((set) => ({
 }));
 
 export const happyMode = create(persist((set) => ({
-    happy: false, toggleHappy: () => set((state) => ({
+    happy: true,
+    toggleHappy: () => set((state) => ({
         happy: !state.happy,
     })),
 }), {
@@ -20,7 +22,8 @@ export const happyMode = create(persist((set) => ({
 export const useTabs = create(persist((set) => ({
     tabs: [{
         label: "工作台", path: "/admin",
-    },], setTabs: (data) => set((state) => {
+    }],
+    setTabs: (data) => set((state) => {
         let isOk = false;
         for (let i = 0; i < state.tabs.length; i++) {
             if (state.tabs[i].label === data.label) {
@@ -35,7 +38,8 @@ export const useTabs = create(persist((set) => ({
                 tabs: [...state.tabs, data],
             };
         }
-    }), delTabs: (index) => set((state) => {
+    }),
+    delTabs: (index) => set((state) => {
         let tmpTabs = [...state.tabs];
         tmpTabs.splice(index, 1)
         return ({

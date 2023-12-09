@@ -4,13 +4,14 @@ import {Button, Form, Input, message} from "antd";
 import {Avatar, Fingerprint, Key} from "@icon-park/react";
 import LeftBg from '@/assets/images/login-left.svg'
 import {useEffect, useState} from "react";
-import {get, post} from "@/utils/http.js";
+import {getHttp, postHttp} from "@/utils/http.js";
 import localforage from "localforage";
 import './login.css'
 
 const Login = () => {
     const navigate = useNavigate()
     const [messageApi, contextHolder] = message.useMessage()
+    const [loginLoading, setLoginLoading] = useState(false)
     const [captcha, setCaptcha] = useState({
         id: '',
         base64: ''
@@ -18,7 +19,7 @@ const Login = () => {
     // 表单信息
     const [form] = Form.useForm()
     const getCaptcha = () => {
-        get('/captcha').then(r => {
+        getHttp('/captcha').then(r => {
             if (r.code !== 200) {
                 console.log(r)
                 message.error('系统错误')
@@ -29,7 +30,8 @@ const Login = () => {
     }
 
     const loginBtn = () => {
-        post('/login', {...form.getFieldsValue(), captchaId: captcha.id}).then(r => {
+        setLoginLoading(true)
+        postHttp('/login', {...form.getFieldsValue(), captchaId: captcha.id}).then(r => {
             getCaptcha()
             if (r.code !== 200) {
                 messageApi.error(`登录失败:${r.msg}`)
@@ -38,9 +40,10 @@ const Login = () => {
                 localforage.setItem('user', r.data).catch(e => {
                     messageApi.error(`登录失败:${e}`)
                 })
-                
+
                 navigate('/admin')
             }
+            setLoginLoading(false)
         })
     }
     useEffect(() => {
@@ -96,8 +99,10 @@ const Login = () => {
                                         <a className={'text-blue-600 float-right'}>忘记密码</a>
                                     </Form.Item>
                                     <Form.Item className={'sm:mt-8'}>
-                                        <Button className={'w-full bg-blue-600'} htmlType={'submit'}
+                                        <Button className={'w-full bg-blue-600'}
+                                                htmlType={'submit'}
                                                 color={'blue'}
+                                                loading={loginLoading}
                                                 type={"primary"}>登录</Button>
                                     </Form.Item>
                                 </Form>

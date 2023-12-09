@@ -9,7 +9,10 @@ const Admin = lazy(() => import("@/views/Admin/Admin.jsx"));
 const Dash = lazy(() => import("@/views/Admin/Dash/Dash.jsx"));
 const Role = lazy(() => import("@/views/Admin/User/Role.jsx"));
 const User = lazy(() => import("@/views/Admin/User/User.jsx"));
+const Menu = lazy(() => import("@/views/Admin/User/Menu.jsx"));
+
 const ZNProgress = () => {
+
     useEffect(() => {
         NProgress.start();
         // const timer = setTimeout(() => {
@@ -26,6 +29,7 @@ const ZNProgress = () => {
 const lazyLoad = (children) => {
     return <Suspense fallback={<ZNProgress/>}>{children}</Suspense>;
 };
+
 const router = createBrowserRouter([
     {
         path: "*",
@@ -55,6 +59,10 @@ const router = createBrowserRouter([
                 path: "user",
                 element: lazyLoad(<User/>),
             },
+            {
+                path: "menu",
+                element: lazyLoad(<Menu/>),
+            }
         ],
     },
 ]);

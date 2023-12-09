@@ -11,6 +11,6 @@ pub struct CaptchaModel {
 pub struct LoginModel {
     pub username: String,
     pub avatar: Option<String>,
-    pub role: String,
+    pub role: Vec<String>,
     pub token: String,
 }

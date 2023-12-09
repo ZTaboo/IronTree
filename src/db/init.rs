@@ -27,12 +27,13 @@ async fn init_admin(database: &Database) -> error::Result<()> {
             return Ok(());
         }
     };
-    let new_data = db_model::user::UserNoPass {
+    let new_data = db_model::user::User {
         username: "admin".to_string(),
         password: Some(pass),
-        role: "超级管理员".to_string(),
+        role: vec!["超级管理员".to_string()],
         avatar: Some("avatar/default.png".to_string()),
-        ..db_model::user::UserNoPass::default()
+        email: Some("admin@admin.com".to_string()),
+        ..db_model::user::User::default()
     };
     database.collection(coll::USER).insert_one(new_data, None).await?;
     Ok(())

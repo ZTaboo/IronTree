@@ -38,8 +38,16 @@ pub async fn del_user(state: State<Arc<AppState>>, req_data: Path<String>) -> Re
 }
 
 // 获取全部用户
-pub async fn get_users(state: State<Arc<AppState>>, Path((page_num, page_size)): Path<(u64, i64)>) -> Result<IJson<PageData<Vec<db_model::user::UserNoPass>>>, ResError> {
+pub async fn get_users(state: State<Arc<AppState>>, Path((page_num, page_size, sort)): Path<(u64, i64, String)>) -> Result<IJson<PageData<Vec<db_model::user::UserInitInfo>>>, ResError> {
     let db = state.mon_db.clone().ok_or_else(|| res_error(401, "连接数据库失败".to_string()))?;
-    let (result, total) = services::api::get_users(db, page_num, page_size).await.map_err(|e| res_error(401, e))?;
+    let (result, total) = services::api::get_users(db, page_num, page_size, sort).await.map_err(|e| res_error(401, e))?;
+    Ok(IJson(PageData { code: 200, msg: "is ok".to_string(), data: result, total }))
+}
+
+
+// 搜索用户
+pub async fn search_user(state: State<Arc<AppState>>, Path((con,page_num, page_size)): Path<(String,u64, i64)>) -> Result<IJson<PageData<Vec<db_model::user::UserInitInfo>>>, ResError> {
+    let db = state.mon_db.clone().ok_or_else(|| res_error(401, "连接数据库失败".to_string()))?;
+    let (result, total) = services::api::search_user(db,con,page_num,page_size).await.map_err(|e| res_error(401, e))?;
     Ok(IJson(PageData { code: 200, msg: "is ok".to_string(), data: result, total }))
 }

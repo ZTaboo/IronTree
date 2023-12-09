@@ -4,7 +4,7 @@ import {useAutoAnimate} from "@formkit/auto-animate/react";
 import {useLocation, useNavigate} from "react-router-dom";
 import {useTabs} from "../store/store";
 import {Button, Dropdown, message} from "antd";
-import "@/assets/css/ironTabs.css";
+import "@/assets/css/ironTabs.less";
 import localforage from "localforage";
 
 const items = [
@@ -94,12 +94,11 @@ export const IronTabs = () => {
 
 
     return (<div
-            ref={parent}
             className="h-[38px] min-h-[38px] pl-[20px] pr-[20px] dark:bg-[#1F2020] flex items-end bg-white shadow-lg justify-between"
             style={{borderTop: "1px solid rgba(5, 5, 5, 0.06)"}}
         >
 
-            <div className={'h-[37px] min-h-[37px] overflow-x-auto flex'}>
+            <div className={'h-[37px] min-h-[37px] flex overflow-hidden'} ref={parent}>
                 {tabs.map((item, index) => (
                     <div
                         key={index}
