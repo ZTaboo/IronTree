@@ -30,6 +30,7 @@ async fn init_admin(database: &Database) -> error::Result<()> {
     let new_data = db_model::user::User {
         username: "admin".to_string(),
         password: Some(pass),
+        nickname: Some("超级管理员".to_string()),
         role: vec!["超级管理员".to_string()],
         avatar: Some("avatar/default.png".to_string()),
         email: Some("admin@admin.com".to_string()),

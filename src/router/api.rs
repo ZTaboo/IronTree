@@ -11,6 +11,7 @@ pub fn api(state: Arc<AppState>) -> Router<Arc<AppState>> {
     Router::new()
         .route("/ping", get(api::ping))
         .route("/add_user", post(api::add_user))
+        .route("/update-user",post(api::update_user))
         .route("/get_user/:specify_user", get(api::get_user))
         .route("/del_user/:users", delete(api::del_user))
         .route("/users/:page_num/:page_size/:sort", get(api::get_users))

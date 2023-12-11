@@ -11,13 +11,14 @@ export const menuList = [
         label: '用户管理',
         children: [
             {
-                key: '/admin/role',
-                label: '角色管理',
-            },
-            {
                 key: '/admin/user',
                 label: '用户管理',
             },
+            {
+                key: '/admin/role',
+                label: '角色管理',
+            },
+
             {
                 key: '/admin/menu',
                 label: '菜单管理',

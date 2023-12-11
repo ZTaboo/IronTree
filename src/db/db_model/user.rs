@@ -3,12 +3,13 @@ use serde::{Deserialize, Serialize};
 #[derive(Serialize, Deserialize, Debug, Default, Clone)]
 pub struct User {
     pub username: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
     pub password: Option<String>,
     // 邮箱
     pub email: Option<String>,
     // 昵称
     pub nickname: Option<String>,
-    // 性别
+    // 性别;1:男;2:女
     pub gender: Option<u8>,
     // 电话
     pub phone: Option<String>,

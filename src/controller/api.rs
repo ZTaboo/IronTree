@@ -23,6 +23,13 @@ pub async fn add_user(state: State<Arc<AppState>>, req_data: Json<AddUserModel>)
     Ok(IJson(ResData { code: 200, msg: "is ok".to_string(), ..ResData::default() }))
 }
 
+// 更新用户信息
+pub async fn update_user(state: State<Arc<AppState>>, req_data: Json<AddUserModel>) -> Result<IJson<ResData<String>>, ResError> {
+    let db = state.mon_db.clone().ok_or_else(|| res_error(401, "连接数据库失败".to_string()))?;
+    services::api::update_user(req_data.clone(), db).await.map_err(|e| res_error(401, e))?;
+    Ok(IJson(ResData { code: 200, msg: "is ok".to_string(), ..ResData::default() }))
+}
+
 // 获取用户详情信息
 pub async fn get_user(state: State<Arc<AppState>>, specify_user: Path<String>) -> Result<IJson<ResData<db_model::user::UserNoPass>>, ResError> {
     let db = state.mon_db.clone().ok_or_else(|| res_error(401, "连接数据库失败".to_string()))?;

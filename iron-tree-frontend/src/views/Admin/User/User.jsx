@@ -1,18 +1,18 @@
-import {Button, Input, message, Popconfirm, Table, Tooltip} from "antd";
+import {Button, Form, Input, message, Modal, Popconfirm, Select, Table, Tag, Tooltip} from "antd";
 import {useEffect, useState} from "react";
-import {deleteHttp, getHttp} from "@/utils/http.js";
+import {deleteHttp, getHttp, postHttp} from "@/utils/http.js";
 import {baseUrl} from "@/utils/base.js";
 import {RefreshOne} from "@icon-park/react";
 
 let searchInfo = {
-    status: false,
-    con: ""
+    status: false, con: ""
 }
 const User = () => {
     const [dataSource, setDataSource] = useState([])
     const [messageApi, contextHolder] = message.useMessage();
     const [loading, setLoading] = useState(false)
     const [selectedKeys, setSelectedKeys] = useState([])
+    const [selectedRowKeys, setSelectedRowKeys] = useState([])
     const [pagination, setPagination] = useState({
         total: 0,
         current: 1,
@@ -28,51 +28,52 @@ const User = () => {
             }
         }
     })
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editUserState, setEditUserState] = useState(false)       // true:编辑用户;false:创建用户
+    const [formRef] = Form.useForm()
 
-    const [selectedRowKeys, setSelectedRowKeys] = useState([])
-
-    const columns = [
-        {
-            width: 90,
-            title: '序号',
-            dataIndex: 'key',
-            key: 'key',
-            sorter: {
-                compare: (a, b) => {
-                    return a.key - b.key
-                },
-                multiple: 3,
-            },
-        }, {
-            width: 200,
-            title: '用户名',
-            dataIndex: 'username',
-            key: 'username',
-        }, {
-            title: '邮箱',
-            dataIndex: 'email',
-            key: 'email',
-        }, {
-            title: '角色',
-            dataIndex: 'role',
-            key: 'role',
-        }, {
-            width: 130,
-            title: '操作',
-            dataIndex: 'event',
-            fixed: 'right',
-            key: 'event',
-            render: (_, record) => (
-                <div>
-                    <Button size={"small"} type={"link"}>编辑</Button>
-                    <Popconfirm title={'危险操作'} description={"你确定要删除这个用户么?"}
-                                onConfirm={() => deleteEvent(record.username)}>
-                        <Button type={"text"} size={"small"} danger className={'ml-4'}>删除</Button>
-                    </Popconfirm>
-                </div>
-            )
-        }
-    ]
+    const columns = [{
+        width: 90, title: '序号', dataIndex: 'key', key: 'key',
+        sorter: {
+            compare: (a, b) => {
+                return a.key - b.key
+            }, multiple: 3,
+        },
+    }, {
+        width: 150, title: '用户名', dataIndex: 'username', key: 'username',
+    }, {
+        width: 100, title: '性别', dataIndex: 'gender', key: 'gender',
+        render: (_, record) => (
+            <Tag color={record.gender === 1 ? 'blue' : 'pink'}>{record.gender === 1 ? "男" : "女"}</Tag>
+        )
+    }, {
+        width: 200, title: '昵称', dataIndex: 'nickname', key: 'nickname',
+    }, {
+        width: 200, title: '邮箱', dataIndex: 'email', key: 'email',
+    }, {
+        width: 200, title: '电话', dataIndex: 'phone', key: 'phone',
+    }, {
+        width: 200, title: '角色', dataIndex: 'role', key: 'role',
+        render: (_, record) => (
+            <div>
+                {record.role.map((item, index) => {
+                    return <Tag color={"blue"} key={index}>{item}</Tag>
+                })}
+            </div>
+        )
+    }, {
+        width: 130, title: '操作', dataIndex: 'event', fixed: 'right', key: 'event', render: (_, record) => (<div>
+            <Button size={"small"} type={"link"} onClick={() => {
+                setEditUserState(true)
+                setIsModalOpen(true)
+                formRef.setFieldsValue(record)
+            }}>编辑</Button>
+            <Popconfirm title={'危险操作'} description={"你确定要删除这个用户么?"}
+                        onConfirm={() => deleteEvent(record.username)}>
+                <Button type={"text"} size={"small"} danger className={'ml-4'}>删除</Button>
+            </Popconfirm>
+        </div>)
+    }]
     const getData = (current, pageSize) => {
         setLoading(true)
         getHttp(`/api/users/${current}/${pageSize}/asc`).then(r => {
@@ -113,6 +114,8 @@ const User = () => {
         setSelectedRowKeys([])
         getData(pagination.current, pagination.pageSize)
         searchInfo = {status: false, con: ""}
+        setEditUserState(false)
+        setIsModalOpen(false)
     }
     const deleteEvent = (users) => {
         deleteHttp(`/api/del_user/${users}`).then(r => {
@@ -154,45 +157,151 @@ const User = () => {
         status ? setSelectedKeys([]) : setSelectedKeys(selectedKeys)
         setSelectedRowKeys(selectedRows)
     }
+    // 添加用户
+    const addClick = () => {
+        formRef.validateFields().then(r => {
+            console.log(r)
+            postHttp('/api/add_user', r).then(r => {
+                if (r.code === 200) {
+                    messageApi.success("添加成功")
+                    initAllData()
+                    setIsModalOpen(false)
+                } else {
+                    messageApi.error(`创建用户失败:${r.msg}`)
+                }
+            })
+        }).catch(e => {
+            console.log(e)
+        })
+    }
+    // 编辑用户
+    const editClick = () => {
+        formRef.validateFields().then(r => {
+            postHttp('/api/update-user', r).then(r => {
+                if (r.code === 200) {
+                    messageApi.success("编辑成功")
+                    initAllData()
+                    setIsModalOpen(false)
+                } else {
+                    messageApi.error(`编辑用户失败:${r.msg}`)
+                }
+            })
+        })
+    }
     useEffect(() => {
         getData(pagination.current, pagination.pageSize)
     }, [])
-    return (
-        <div className={'bg-white dark:bg-dark pl-4 pr-4 pb-4'}>
-            {contextHolder}
-            {/*顶部功能按钮*/}
-            <div className={'flex sm:justify-between justify-end flex-wrap sm:flex-nowrap w-full'}>
-                <div className={'mt-4'}>
-                    <Button type={"primary"}>添加</Button>
-                    <Button type={"primary"} danger className={'ml-4'} onClick={deleteClick}>删除</Button>
-                </div>
-                <div className={'flex ml-4 mt-4'}>
-                    <Input.Search placeholder={'请输入用户名'} enterButton onSearch={searchClick}></Input.Search>
-                    <Tooltip title={'刷新'}>
-                        <Button className={'ml-4'}
-                                type={"text"}
-                                icon={<RefreshOne theme="multi-color" size="16" fill="#CEDFEF" strokeLinecap="round"/>}
-                                onClick={() => getData(pagination.current, pagination.pageSize)}
-                        />
-                    </Tooltip>
-                </div>
+    return (<div className={'bg-white dark:bg-dark pl-4 pr-4 pb-4'}>
+        {contextHolder}
+        <Modal title={!editUserState ? '用户添加' : '用户编辑'} open={isModalOpen}
+               destroyOnClose={true}
+               onOk={() => {
+                   editUserState ? editClick() : addClick()
+               }}
+               onCancel={() => initAllData()}>
+            <Form labelAlign={"right"} labelCol={{span: 4}} preserve={false} className={'mt-4'} form={formRef}>
+                <Form.Item
+                    label="用户名"
+                    name="username"
+                    rules={[{
+                        required: true, message: '请输入用户名',
+                    },]}
+                >
+                    <Input disabled={editUserState} placeholder={'请输入用户名'}/>
+                </Form.Item>
+                <Form.Item
+                    label="邮箱"
+                    name="email"
+                >
+                    <Input placeholder={'请输入邮箱'}/>
+                </Form.Item>
+                <Form.Item
+                    label="性别"
+                    name="gender"
+                    rules={[{
+                        required: true, message: '请选择性别',
+                    },]}
+                >
+                    <Select
+                        allowClear
+                        style={{width: '100%'}}
+                        placeholder="请选择性别"
+                        options={[{label: '男', value: 1}, {label: '女', value: 2}]}
+                    />
+                </Form.Item>
+                <Form.Item
+                    label="昵称"
+                    name="nickname"
+                    rules={[{
+                        required: true, message: '请输入昵称',
+                    },]}
+                >
+                    <Input placeholder={'请输入昵称'}/>
+                </Form.Item>
+                <Form.Item
+                    label="密码"
+                    name="password"
+                    rules={[{
+                        required: !editUserState, message: '请输入密码',
+                    },]}
+                >
+                    <Input placeholder={'请输入密码'}/>
+                </Form.Item>
+                <Form.Item
+                    label="角色"
+                    name="role"
+                    rules={[{
+                        required: true, message: '请选择角色',
+                    },]}
+                >
+                    <Select
+                        mode="multiple"
+                        allowClear
+                        style={{width: '100%'}}
+                        placeholder="请选择角色"
+                        options={[{label: '超级管理员', value: '超级管理员'}, {
+                            label: '普通用户',
+                            value: '普通用户'
+                        }]}
+                    />
+                </Form.Item>
+
+
+            </Form>
+        </Modal>
+        {/*顶部功能按钮*/}
+        <div className={'flex sm:justify-between justify-end flex-wrap sm:flex-nowrap w-full'}>
+            <div className={'mt-4'}>
+                <Button type={"primary"} onClick={() => {
+                    setEditUserState(false)
+                    setIsModalOpen(true)
+                }}>添加</Button>
+                <Button type={"primary"} danger className={'ml-4'} onClick={deleteClick}>删除</Button>
             </div>
-            {/*    表格内容*/}
-            <Table size={"small"}
-                   rowSelection={{
-                       type: "checkbox",
-                       selectedRowKeys: selectedKeys,
-                       onChange: tableRow
-                   }}
-                   columns={columns}
-                   dataSource={dataSource}
-                   className={'mt-4'}
-                   scroll={{x: 900}}
-                   loading={loading}
-                   pagination={pagination}
-            ></Table>
+            <div className={'flex ml-4 mt-4'}>
+                <Input.Search placeholder={'请输入用户名'} enterButton onSearch={searchClick}></Input.Search>
+                <Tooltip title={'刷新'}>
+                    <Button className={'ml-4'}
+                            type={"text"}
+                            icon={<RefreshOne theme="multi-color" size="16" fill="#CEDFEF" strokeLinecap="round"/>}
+                            onClick={() => getData(pagination.current, pagination.pageSize)}
+                    />
+                </Tooltip>
+            </div>
         </div>
-    )
+        {/*    表格内容*/}
+        <Table size={"small"}
+               rowSelection={{
+                   type: "checkbox", selectedRowKeys: selectedKeys, onChange: tableRow
+               }}
+               columns={columns}
+               dataSource={dataSource}
+               className={'mt-4'}
+               scroll={{x: 900}}
+               loading={loading}
+               pagination={pagination}
+        ></Table>
+    </div>)
 }
 
 export default User

@@ -2,7 +2,7 @@ use axum::extract::Path;
 use axum::Json;
 use futures::stream::TryStreamExt;
 use mongodb::bson::doc;
-use mongodb::Database;
+use mongodb::{bson, Database};
 use mongodb::options::FindOptions;
 
 use crate::db::{coll, db_model};
@@ -21,18 +21,55 @@ pub async fn add_user(req_data: Json<AddUserModel>, db: Database) -> Result<(), 
         Err("用户已存在,请登录")?;
     }
 
-    let new_pass = utils::crypt::enc_password(req_data.password.as_bytes()).map_err(|e| format!("密码加密错误:{}", e))?;
+    let new_pass = if let Some(pass) = req_data.password.as_ref() {
+        if pass.is_empty() {
+            Err("密码不可为空".to_string())?;
+        }
+        Some(utils::crypt::enc_password(pass.as_bytes()).map_err(|e| format!("密码加密错误:{}", e.to_string()))?)
+    } else {
+        Err("密码不可为空".to_string())?
+    };
     let user = db_model::user::User {
         username: req_data.username.clone(),
-        password: Some(new_pass),
+        password: new_pass,
         avatar: Some("avatar/default.png".to_string()),
-        email: Some("admin@admin.com".to_string()),
-        role: vec!["管理员".to_string()],
+        email: req_data.email.clone(),
+        role: req_data.role.clone(),
+        nickname: Some(req_data.nickname.clone()),
+        gender: req_data.gender.clone(),
+        phone: req_data.phone.clone(),
         ..db_model::user::User::default()
     };
     db.collection::<db_model::user::User>(coll::USER)
         .insert_one(user, None)
         .await.map_err(|e| format!("添加用户错误:{}", e))?;
+    Ok(())
+}
+
+pub async fn update_user(json: Json<AddUserModel>, db: Database) -> Result<(), String> {
+    let new_pass = if let Some(pass) = json.password.as_ref() {
+        if pass.is_empty() {
+            return Ok(())
+        }
+        Some(utils::crypt::enc_password(pass.as_bytes()).map_err(|e| format!("密码加密错误:{}", e.to_string()))?)
+    } else {
+        None
+    };
+    let user = db_model::user::User {
+        username: json.username.clone(),
+        password: new_pass,
+        avatar: Some("avatar/default.png".to_string()),
+        email: json.email.clone(),
+        role: json.role.clone(),
+        nickname: Some(json.nickname.clone()),
+        gender: json.gender.clone(),
+        phone: json.phone.clone(),
+        ..db_model::user::User::default()
+    };
+    let user_bson = bson::to_bson(&user).map_err(|e| format!("转换为bson错误:{}", e.to_string()))?;
+    db.collection::<db_model::user::User>(coll::USER)
+        .update_one(doc! {"username": json.username.clone()}, doc! {"$set": user_bson}, None)
+        .await.map_err(|e| format!("更新用户错误:{}", e))?;
     Ok(())
 }
 

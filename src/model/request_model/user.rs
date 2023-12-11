@@ -13,12 +13,11 @@ pub struct LoginModel {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct AddUserModel {
-    #[serde(rename = "username")]
+    pub email: Option<String>,
+    pub gender: Option<u8>,
+    pub nickname: String,
+    pub password: Option<String>,
+    pub phone: Option<String>,
+    pub role: Vec<String>,
     pub username: String,
-
-    #[serde(rename = "password")]
-    pub password: String,
-
-    #[serde(rename = "role")]
-    pub role: String,
 }
