@@ -16,5 +16,7 @@ pub fn api(state: Arc<AppState>) -> Router<Arc<AppState>> {
         .route("/del_user/:users", delete(api::del_user))
         .route("/users/:page_num/:page_size/:sort", get(api::get_users))
         .route("/search_user/:con/:page_num/:page_size", get(api::search_user))
+        .route("/add-menu",post(api::add_menu))
+        .route("/get-menu",get(api::get_menu))
         .layer(axum::middleware::from_fn_with_state(state, middleware::auth)) // 鉴权中间件
 }

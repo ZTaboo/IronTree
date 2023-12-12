@@ -1,4 +1,4 @@
-import {useEffect, useState} from "react";
+import {createElement, useEffect, useState} from "react";
 import {getHttp} from "@/utils/http.js";
 import {Breadcrumb, Button, Drawer, Layout, Menu, message, theme} from "antd";
 import {Outlet, useLocation, useNavigate} from "react-router-dom";
@@ -7,8 +7,10 @@ import {IronTabs} from "@/components/IronTabs.jsx";
 import {HeaderRightBox} from "@/components/ToggleTheme/HeaderRightBox.jsx";
 import LogoImg from "@/assets/images/logo.png";
 import {useAutoAnimate} from "@formkit/auto-animate/react";
-import {menuList} from "@/components/MenuList.jsx";
+// import {menuList} from "@/components/MenuList.jsx";
 import {useTabs, useTheme} from "@/store/store.jsx";
+import axios from "axios";
+import * as Icons from '@ant-design/icons'
 
 const {Header, Sider, Content} = Layout;
 const Admin = () => {
@@ -17,6 +19,7 @@ const Admin = () => {
     const {dark} = useTheme();
     const [collapsed, setCollapsed] = useState(false);
     const [phoneMenu, setPhoneMenu] = useState(false);
+    const [menuList, setMenuList] = useState([]);
     const {setTabs} = useTabs();
     const [selectedValue, setSelectedValue] = useState({
         selectedKeys: [],
@@ -102,21 +105,57 @@ const Admin = () => {
             }
         }
     };
+
+    const resMenuToMenuList = (data) => {
+        return data.map(item => {
+            const transformedItem = {
+                key: item.router,
+                icon: getIcon(item.icon), // 根据icon字段获取对应的图标组件
+                label: item.menuName,
+            };
+
+            if (item.children && item.children.length > 0) {
+                transformedItem.children = resMenuToMenuList(item.children);
+            }
+
+            return transformedItem;
+        });
+    }
+
+    // 根据icon字段获取对应的图标组件，你可以根据需要自定义这个函数
+    function getIcon(iconName) {
+        return createElement(Icons[iconName]);
+    }
+
+    const initMenu = () => {
+        // 动态获取菜单路由
+        axios.get('/mock/menu.json').then(r => {
+            if (r.code === 200) {
+                let res = resMenuToMenuList(r.data)
+                console.log({res})
+                setMenuList(res)
+                getTabName(res, location.pathname);
+                if (tmpTabName && tmpTabName.trim() !== "" && tmpTabName.length > 1) {
+                    setTabs({
+                        label: tmpTabName,
+                        path: location.pathname,
+                    });
+                }
+                getMenu(res);
+            } else {
+                message.error(r.msg)
+            }
+        })
+    }
     useEffect(() => {
         getHttp("/api/ping").catch(() => {
             message.error("登录失效");
             setTimeout(() => {
-                navigate("/login");
+                navigate("/");
             }, 500);
         });
-        getTabName(menuList, location.pathname);
-        if (tmpTabName && tmpTabName.trim() !== "" && tmpTabName.length > 1) {
-            setTabs({
-                label: tmpTabName,
-                path: location.pathname,
-            });
-        }
-        getMenu(menuList);
+        initMenu()
+
     }, [location.pathname]);
     return (
         <Layout className={"h-[100vh] dark:text-white"}>
@@ -170,7 +209,6 @@ const Admin = () => {
                     onClick={selectMenuBtn}
                     style={{height: "calc(100vh - 48px)", overflowX: 'auto'}}
                     mode="inline"
-                    defaultSelectedKeys={["1"]}
                     items={menuList}
                 />
             </Sider>

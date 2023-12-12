@@ -6,7 +6,9 @@ use mongodb::{bson, Database};
 use mongodb::options::FindOptions;
 
 use crate::db::{coll, db_model};
+use crate::model::request_model::menu::AddMenuModel;
 use crate::model::request_model::user::AddUserModel;
+use crate::model::response_model;
 use crate::utils;
 
 // 确保引入了 TryStreamExt trait
@@ -49,7 +51,7 @@ pub async fn add_user(req_data: Json<AddUserModel>, db: Database) -> Result<(), 
 pub async fn update_user(json: Json<AddUserModel>, db: Database) -> Result<(), String> {
     let new_pass = if let Some(pass) = json.password.as_ref() {
         if pass.is_empty() {
-            return Ok(())
+            return Ok(());
         }
         Some(utils::crypt::enc_password(pass.as_bytes()).map_err(|e| format!("密码加密错误:{}", e.to_string()))?)
     } else {
@@ -141,4 +143,49 @@ pub async fn search_user(db: Database, con: String, page_num: u64, page_size: i6
         .await
         .map_err(|e| format!("数据库错误:{}", e))?;
     Ok((users, total))
+}
+
+pub async fn add_menu(req_data: Json<AddMenuModel>, db: Database) -> Result<(), String> {
+    let insert_data = db_model::menu::Menu {
+        parent: req_data.parent.clone(),
+        name: req_data.name.clone(),
+        sort: req_data.sort.clone(),
+        menu_type: req_data.menu_type.clone(),
+        icon: req_data.icon.clone(),
+        router: req_data.router.clone(),
+        role: req_data.role.clone(),
+        ..db_model::menu::Menu::default()
+    };
+    db.collection::<db_model::menu::Menu>(coll::MENU)
+        .insert_one(insert_data, None)
+        .await
+        .map_err(|e| format!("插入菜单错误:{}", e.to_string()))?;
+    Ok(())
+}
+
+pub async fn get_menu(db: Database) -> Result<Vec<response_model::menu::ResMenuModel>, String> {
+    let res = db
+        .collection::<db_model::menu::Menu>(coll::MENU)
+        .find(None, None)
+        .await
+        .map_err(|e| format!("数据库错误:{}", e))?;
+    let menus: Vec<db_model::menu::Menu> = res.try_collect()
+        .await
+        .map_err(|e| format!("数据库错误:{}", e))?;
+    let mut res_data: Vec<response_model::menu::ResMenuModel> = Vec::new();
+    for i in menus {
+
+        res_data.push(response_model::menu::ResMenuModel {
+            id: i._id.ok_or_else(|| "获取菜单ID失败".to_string())?.to_hex(),
+            parent: i.parent,
+            name: i.name,
+            sort: i.sort,
+            menu_type: i.menu_type,
+            icon: i.icon,
+            router: i.router,
+            role: i.role,
+            children: None,
+        });
+    }
+    Ok(res_data)
 }

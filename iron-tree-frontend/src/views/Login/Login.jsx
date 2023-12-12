@@ -3,10 +3,13 @@ import Logo from '@/assets/images/logo.png'
 import {Button, Form, Input, message} from "antd";
 import {Avatar, Fingerprint, Key} from "@icon-park/react";
 import LeftBg from '@/assets/images/login-left.svg'
-import {useEffect, useState} from "react";
+import {createElement, lazy, useEffect, useState} from "react";
 import {getHttp, postHttp} from "@/utils/http.js";
 import localforage from "localforage";
 import './login.css'
+import {useRouterStore} from "@/store/routerStore.jsx";
+import axios from "axios";
+import {lazyLoad, modulePaths} from "@/router.jsx";
 
 const Login = () => {
     const navigate = useNavigate()
@@ -16,6 +19,8 @@ const Login = () => {
         id: '',
         base64: ''
     })
+
+    const {routers, setPath} = useRouterStore()
     // 表单信息
     const [form] = Form.useForm()
     const getCaptcha = () => {
@@ -40,12 +45,40 @@ const Login = () => {
                 localforage.setItem('user', r.data).catch(e => {
                     messageApi.error(`登录失败:${e}`)
                 })
-
-                navigate('/admin')
+                getRouters()
+                navigate('/admin/dash')
             }
             setLoginLoading(false)
         })
     }
+    const getRouters = () => {
+        console.log({modulePaths})
+        axios.get('/mock/menu.json').then(r => {
+            let res = resMenuToMenuList(r.data)
+            setPath(routers.concat(res))
+        })
+    }
+    // 递归转换为路由数组
+    const resMenuToMenuList = (data) => {
+        return data.map(item => {
+            let Element
+            if (item.children && item.children.length > 0) {
+                Element = lazyLoad(createElement(lazy(modulePaths['./views/Admin/Admin.jsx'])))
+            } else {
+                Element = lazyLoad(createElement(lazy(modulePaths[`./${item.path}`])))
+            }
+            const transformedItem = {
+                path: item.router,
+                element: Element
+            };
+
+            if (item.children && item.children.length > 0) {
+                transformedItem.children = resMenuToMenuList(item.children);
+            }
+            return transformedItem;
+        });
+    }
+
     useEffect(() => {
         getCaptcha()
     }, [])

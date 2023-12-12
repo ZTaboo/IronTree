@@ -1,0 +1,44 @@
+{
+  "code": 200,
+  "data": [
+    {
+      "id": 1,
+      "sort": 1,
+      "parent": 0,
+      "menuName": "工作台",
+      "type": "menu",
+      "icon": "HomeOutlined",
+      "router": "/admin/dash"
+    },
+    {
+      "id": 2,
+      "sort": 2,
+      "parent": 0,
+      "menuName": "用户管理",
+      "type": "menu",
+      "icon": "UserSwitchOutlined",
+      "router": "/user",
+      "children": [
+        {
+          "id": 3,
+          "sort": 1,
+          "parent": 2,
+          "menuName": "用户管理",
+          "type": "menu",
+          "icon": "UserAddOutlined",
+          "router": "/user/user"
+        },
+        {
+          "id": 5,
+          "sort": 3,
+          "parent": 2,
+          "menuName": "菜单管理",
+          "type": "menu",
+          "icon": "MenuOutlined",
+          "router": "/user/menu"
+        }
+      ]
+    }
+  ],
+  "msg": "success"
+}

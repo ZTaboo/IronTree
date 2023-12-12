@@ -21,7 +21,7 @@ export const happyMode = create(persist((set) => ({
 
 export const useTabs = create(persist((set) => ({
     tabs: [{
-        label: "工作台", path: "/admin",
+        label: "工作台", path: "/admin/dash",
     }],
     setTabs: (data) => set((state) => {
         let isOk = false;
@@ -48,15 +48,15 @@ export const useTabs = create(persist((set) => ({
     }), // 关闭全部标签
     delAllTabs: () => set(() => ({
         tabs: [{
-            label: "工作台", path: "/admin",
+            label: "工作台", path: "/admin/dash",
         }],
     })), // 关闭其它tab
     delOtherTabs: (data) => {
         set((state) => ({
             tabs: data.path === "/admin" ? [{
-                label: "工作台", path: "/admin",
+                label: "工作台", path: "/admin/dash",
             }] : [{
-                label: "工作台", path: "/admin",
+                label: "工作台", path: "/admin/dash",
             }, data],
         }))
     }, //     关闭指定方向全部tab
@@ -65,7 +65,7 @@ export const useTabs = create(persist((set) => ({
             case 'left':
                 set((state) => ({
                     tabs: [{
-                        label: "工作台", path: "/admin",
+                        label: "工作台", path: "/admin/dash",
                     }, ...state.tabs.slice(index)]
                 }))
                 return
@@ -75,7 +75,7 @@ export const useTabs = create(persist((set) => ({
                     newList.splice(index + 1)
                     return {
                         tabs: index === 0 ? [{
-                            label: "工作台", path: "/admin",
+                            label: "工作台", path: "/admin/dash",
                         }] : [...newList]
                     }
                 })

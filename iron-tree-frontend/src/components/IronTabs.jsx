@@ -42,7 +42,6 @@ export const IronTabs = () => {
     });
     const closeBtn = (e, index) => {
         e.stopPropagation();
-        console.log(thisTab);
         for (let i = 0; i < tabs.length; i++) {
             if (tabs[i].path === localhost.pathname) {
                 if (i === index) {

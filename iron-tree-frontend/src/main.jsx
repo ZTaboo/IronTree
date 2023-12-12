@@ -1,7 +1,7 @@
-import React, {useEffect, useState} from 'react'
+import React, {createElement, lazy, useEffect, useState} from 'react'
 import ReactDOM from 'react-dom/client'
-import {RouterProvider} from "react-router-dom";
-import router from "@/router.jsx";
+import {createBrowserRouter, Navigate, RouterProvider} from "react-router-dom";
+import {lazyLoad, modulePaths, router} from "@/router.jsx";
 import {ConfigProvider, theme} from "antd";
 import {happyMode, useTheme} from "@/store/store.jsx";
 import zhCN from 'antd/locale/zh_CN';
@@ -24,10 +24,12 @@ const App = () => {
     const {dark} = useTheme()
     const {happy} = happyMode()
     const [tokenTheme, setTokenTheme] = useState({})
+    const [thisRouter, setRouter] = useState([])
     useEffect(() => {
         !dark ? document.querySelector('html').classList.remove('dark') : document.querySelector('html').classList.add('dark')
         !dark ? setTokenTheme(lightToken) : setTokenTheme(darkToken)
     }, [dark])
+
     return (
         <ConfigProvider locale={zhCN} theme={{
             components: {
@@ -44,7 +46,7 @@ const App = () => {
         }}>
             {/*TODO:快乐模式*/}
             <HappyProvider disabled={!happy}>
-                <RouterProvider router={router}></RouterProvider>
+                <RouterProvider router={createBrowserRouter(router)}></RouterProvider>
             </HappyProvider>
         </ConfigProvider>
     )

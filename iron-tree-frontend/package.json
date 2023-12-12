@@ -19,6 +19,7 @@
     "@dnd-kit/utilities": "^3.2.2",
     "@formkit/auto-animate": "^0.8.1",
     "@icon-park/react": "^1.4.2",
+    "@rollup/plugin-dynamic-import-vars": "^2.1.2",
     "animejs": "^3.2.2",
     "antd": "^5.11.5",
     "axios": "^1.6.2",

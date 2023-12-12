@@ -2,7 +2,7 @@ import {CoordinateSystem, EveryUser, ExpandDown, FileEditing, Log, Workbench} fr
 
 export const menuList = [
     {
-        key: '/admin',
+        key: '/admin/dash',
         icon: <Workbench theme="filled" size="16" fill="#CFDEE7" strokeLinecap="butt"/>,
         label: '工作台',
     }, {
@@ -11,16 +11,16 @@ export const menuList = [
         label: '用户管理',
         children: [
             {
-                key: '/admin/user',
+                key: '/user/user',
                 label: '用户管理',
             },
             {
-                key: '/admin/role',
+                key: '/user/role',
                 label: '角色管理',
             },
 
             {
-                key: '/admin/menu',
+                key: '/user/menu',
                 label: '菜单管理',
             }
         ]

@@ -1,5 +1,5 @@
 import {lazy, Suspense, useEffect} from "react";
-import {createBrowserRouter} from "react-router-dom";
+import {createBrowserRouter, Navigate} from "react-router-dom";
 import NProgress from "nprogress";
 
 const Home = lazy(() => import("@/views/Home/Home.jsx"));
@@ -11,7 +11,7 @@ const Role = lazy(() => import("@/views/Admin/User/Role.jsx"));
 const User = lazy(() => import("@/views/Admin/User/User.jsx"));
 const Menu = lazy(() => import("@/views/Admin/User/Menu.jsx"));
 
-const ZNProgress = () => {
+export const ZNProgress = () => {
 
     useEffect(() => {
         NProgress.start();
@@ -26,45 +26,58 @@ const ZNProgress = () => {
     return <div className={"dark:bg-[#232324] h-[100vh]"}></div>;
 };
 
-const lazyLoad = (children) => {
+export const lazyLoad = (children) => {
     return <Suspense fallback={<ZNProgress/>}>{children}</Suspense>;
 };
 
-const router = createBrowserRouter([
+export const modulePaths = import.meta.glob(`./views/**/*.jsx`);
+
+export const router = [
     {
         path: "*",
         element: lazyLoad(<NoFound/>),
     },
     {
         path: "/",
-        element: lazyLoad(<Home/>),
-    },
-    {
-        path: "/login",
         element: lazyLoad(<Login/>),
     },
     {
-        path: "/admin",
+        path: "/user",
         element: lazyLoad(<Admin/>),
         children: [
-            {
-                index: true,
-                element: lazyLoad(<Dash/>),
-            },
-            {
-                path: "role",
-                element: lazyLoad(<Role/>),
+            {       // 重定向到指定路由
+                path: "",
+                element: <Navigate to="user" replace/>,
             },
             {
                 path: "user",
                 element: lazyLoad(<User/>),
             },
             {
+                path: "role",
+                element: lazyLoad(<Role/>),
+            },
+
+            {
                 path: "menu",
                 element: lazyLoad(<Menu/>),
             }
+        ]
+    },
+    {
+        path: "/admin",
+        element: lazyLoad(<Admin/>),
+        children: [
+            {       // 重定向到指定路由
+                path: "",
+                element: <Navigate to="dash" replace/>,
+            },
+            {
+                path: "dash",
+                element: lazyLoad(<Dash/>),
+            },
+
         ],
     },
-]);
+];
 
-export default router;
