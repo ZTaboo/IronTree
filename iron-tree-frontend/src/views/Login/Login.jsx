@@ -7,7 +7,6 @@ import {createElement, lazy, useEffect, useState} from "react";
 import {getHttp, postHttp} from "@/utils/http.js";
 import localforage from "localforage";
 import './login.css'
-import {useRouterStore} from "@/store/routerStore.jsx";
 import axios from "axios";
 import {lazyLoad, modulePaths} from "@/router.jsx";
 
@@ -20,7 +19,6 @@ const Login = () => {
         base64: ''
     })
 
-    const {routers, setPath} = useRouterStore()
     // 表单信息
     const [form] = Form.useForm()
     const getCaptcha = () => {
