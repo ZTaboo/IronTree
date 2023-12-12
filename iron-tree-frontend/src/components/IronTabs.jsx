@@ -77,7 +77,7 @@ export const IronTabs = () => {
                 message.error('异常操作')
                 setTimeout(() => {
                     localforage.clear()
-                    navigate('/login')
+                    navigate('/')
                 }, 500)
                 break
         }

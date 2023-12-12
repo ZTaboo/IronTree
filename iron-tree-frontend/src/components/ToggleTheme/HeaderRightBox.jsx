@@ -30,7 +30,7 @@ export const HeaderRightBox = () => {
         switch (key) {
             case "logout":
                 localforage.clear();
-                navigate('/login')
+                navigate('/')
                 break;
             default:
                 break;

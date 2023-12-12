@@ -1,8 +1,7 @@
 import {lazy, Suspense, useEffect} from "react";
-import {createBrowserRouter, Navigate} from "react-router-dom";
+import {Navigate} from "react-router-dom";
 import NProgress from "nprogress";
 
-const Home = lazy(() => import("@/views/Home/Home.jsx"));
 const Login = lazy(() => import("@/views/Login/Login.jsx"));
 const NoFound = lazy(() => import("@/views/NoFound/NoFound.jsx"));
 const Admin = lazy(() => import("@/views/Admin/Admin.jsx"));
